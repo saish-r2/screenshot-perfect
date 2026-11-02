@@ -57,10 +57,10 @@ export function OrderTracker({ order }: { order: Order }) {
               </p>
               <p className="text-xs text-muted-foreground">
                 {done
-                  ? `Done · ${formatTime(times[i])}`
+                  ? `Done · ${formatTime(times[i] ?? order.placedAt)}`
                   : active
                     ? step.hint
-                    : `Expected around ${formatTime(times[i])}`}
+                    : `Expected around ${formatTime(times[i] ?? order.placedAt + step.offsetMs)}`}
               </p>
             </div>
           </li>
