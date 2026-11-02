@@ -22,9 +22,9 @@ export const ORDER_STEPS: OrderStep[] = [
 export function getOrderStepIndex(placedAt: number, now: number): number {
   const elapsed = now - placedAt;
   let index = 0;
-  for (let i = 0; i < ORDER_STEPS.length; i += 1) {
-    if (elapsed >= ORDER_STEPS[i].offsetMs) index = i;
-  }
+  ORDER_STEPS.forEach((step, i) => {
+    if (elapsed >= step.offsetMs) index = i;
+  });
   return index;
 }
 
