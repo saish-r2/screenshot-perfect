@@ -19,7 +19,7 @@ export function QtyStepper({ qty, onChange, min = 1, className }: QtyStepperProp
       <button
         type="button"
         aria-label="Decrease quantity"
-        onClick={() => onChange(Math.max(min - 1 >= 1 ? 0 : 0, qty - 1))}
+        onClick={() => onChange(qty - 1)}
         disabled={qty <= min}
         className="flex size-7 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
       >
