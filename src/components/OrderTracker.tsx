@@ -1,31 +1,26 @@
-import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import type { Order } from "@/data/types";
-import { ORDER_STEPS, getOrderStepIndex, orderStepTimes } from "@/lib/order";
+import { ORDER_STEPS, statusIndex } from "@/lib/order";
 import { cn } from "@/lib/utils";
 
 function formatTime(ms: number): string {
   return new Date(ms).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
 }
 
-/** Live progress tracker: placed → accepted → preparing → ready. */
+/**
+ * Progress read from the order's real status history — nothing is time-driven.
+ * In this demo the kitchen board (/kitchen) is what moves the order along.
+ */
 export function OrderTracker({ order }: { order: Order }) {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const current = getOrderStepIndex(order.placedAt, now);
-  const times = orderStepTimes(order);
+  const current = statusIndex(order.status);
 
   return (
     <ol className="ml-1">
       {ORDER_STEPS.map((step, i) => {
+        const event = order.statusHistory.find((h) => h.status === step.id);
         const done = i < current;
         const active = i === current;
-        const reached = done || active;
+        const reached = done || active || event !== undefined;
         return (
           <li key={step.id} className="relative flex gap-4 pb-7 last:pb-0">
             {i < ORDER_STEPS.length - 1 && (
@@ -52,15 +47,19 @@ export function OrderTracker({ order }: { order: Order }) {
               )}
             </span>
             <div className="pt-0.5">
-              <p className={cn("text-sm font-bold", reached ? "text-foreground" : "text-muted-foreground")}>
+              <p
+                className={cn("text-sm font-bold", reached ? "text-foreground" : "text-muted-foreground")}
+              >
                 {step.label}
               </p>
               <p className="text-xs text-muted-foreground">
-                {done
-                  ? `Done · ${formatTime(times[i] ?? order.placedAt)}`
+                {event
+                  ? `Done · ${formatTime(event.at)}`
                   : active
                     ? step.hint
-                    : `Expected around ${formatTime(times[i] ?? order.placedAt + step.offsetMs)}`}
+                    : step.id === "ready"
+                      ? `Expected around ${formatTime(order.expectedReadyAt)}`
+                      : step.hint}
               </p>
             </div>
           </li>

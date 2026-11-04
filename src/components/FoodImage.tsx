@@ -15,7 +15,8 @@ interface FoodImageProps {
 export function FoodImage({ src, alt, className }: FoodImageProps) {
   const [failed, setFailed] = useState(false);
 
-  if (failed) {
+  // Admin-added items may have no photo — show the warm placeholder tile.
+  if (failed || !src) {
     return (
       <div
         role="img"

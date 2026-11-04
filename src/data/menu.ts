@@ -153,6 +153,18 @@ export const MENU: MenuItem[] = [
 
 export const MENU_CATEGORIES = ["Biryani", "Sides", "Desserts"] as const;
 
+/** The bundled food photos an admin can attach to a menu item (no upload service in the demo). */
+export const FOOD_IMAGES: { label: string; src: string }[] = [
+  { label: "Chicken dum biryani", src: chickenImg },
+  { label: "Mutton dum biryani", src: familyImg },
+  { label: "Veg dum biryani", src: vegImg },
+  { label: "Family pack biryani", src: familyImg },
+  { label: "Haleem", src: haleemImg },
+  { label: "Mirchi ka salan", src: salanImg },
+  { label: "Boondi raita", src: raitaImg },
+  { label: "Double ka meetha", src: meethaImg },
+];
+
 export function getMenu(): MenuItem[] {
   return MENU;
 }
