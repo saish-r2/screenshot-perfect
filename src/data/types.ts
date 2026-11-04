@@ -79,6 +79,21 @@ export interface CartLine {
 
 export type PaymentMethod = "upi" | "card";
 
+/** Lifecycle of a demo order. Kitchen staff move it forward manually — no timers. */
+export type OrderStatus =
+  | "placed"
+  | "accepted"
+  | "preparing"
+  | "ready"
+  | "out_for_delivery"
+  | "delivered";
+
+export interface OrderStatusEvent {
+  status: OrderStatus;
+  /** Epoch ms when the status was set. */
+  at: number;
+}
+
 export interface OrderCustomer {
   name: string;
   phone: string;
@@ -104,4 +119,10 @@ export interface Order {
   paymentMethod: PaymentMethod;
   /** Epoch ms when the demo order was placed. */
   placedAt: number;
+  /** Current status — only the kitchen board changes this. */
+  status: OrderStatus;
+  /** Every status change with its timestamp, oldest first. */
+  statusHistory: OrderStatusEvent[];
+  /** Epoch ms when the kitchen expects the order to be ready (outlet ETA based). */
+  expectedReadyAt: number;
 }
