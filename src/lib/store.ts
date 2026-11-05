@@ -182,6 +182,11 @@ export function applyOutletSwitch(nextId: string) {
   });
 }
 
+/** The confirmed variant of a cart-carrying switch: clears the cart and switches. */
+export function confirmOutletSwitch(nextId: string) {
+  persist({ ...state, outletId: nextId, cart: [] });
+}
+
 // --- Cart ---
 
 export interface AddToCartInput {

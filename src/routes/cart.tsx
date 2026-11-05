@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, ShoppingBag, TriangleAlert } from "lucide-react";
-import { getItem } from "@/data/menu";
 import { getOutlet } from "@/data/outlets";
 import { cartTotals, formatINR, lineDescription } from "@/lib/format";
 import { hydrateStore, removeLine, setLineQty, useStore } from "@/lib/store";

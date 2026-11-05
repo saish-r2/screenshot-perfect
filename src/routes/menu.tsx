@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MapPin, Repeat, Timer } from "lucide-react";
 import type { MenuItem } from "@/data/types";
-import { getMenu, isItemAvailable, MENU_CATEGORIES } from "@/data/menu";
+import { isItemAvailable, MENU_CATEGORIES } from "@/data/menu";
 import { getOutlet } from "@/data/outlets";
 import { addToCart, hydrateStore, useStore } from "@/lib/store";
 import { defaultPortionId, defaultSpiceId, formatINR } from "@/lib/format";
@@ -63,7 +63,7 @@ function MenuPage() {
     );
   }
 
-  const items = getMenu();
+  const items = store.menuItems;
 
   const quickAdd = (item: MenuItem) => {
     addToCart({
@@ -105,7 +105,7 @@ function MenuPage() {
       {/* Category chips */}
       <nav
         aria-label="Menu categories"
-        className="sticky top-16 z-30 border-b border-border/70 bg-background/95 backdrop-blur"
+        className="sticky top-[96px] z-30 border-b border-border/70 bg-background/95 backdrop-blur"
       >
         <div className="mx-auto flex max-w-5xl gap-2 overflow-x-auto px-4 py-3">
           {MENU_CATEGORIES.map((cat) => (
