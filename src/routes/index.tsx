@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Clock, MapPin, ReceiptText, Timer } from "lucide-react";
+import { ArrowRight, Check, Clock, MapPin, ReceiptText, Timer, TriangleAlert } from "lucide-react";
 import heroImg from "@/assets/hero-spread.jpg";
-import { listOutlets } from "@/data/outlets";
-import { hydrateStore, selectOutlet, useStore } from "@/lib/store";
+import { getOutlet, listOutlets } from "@/data/outlets";
+import { lookupPincode, type PincodeLookup } from "@/lib/pincodes";
+import { applyOutletSwitch, hydrateStore, outletSwitchDecision, useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -18,16 +19,14 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Tales of Hyderabad — Choose your outlet" },
       {
         property: "og:description",
-        content:
-          "Pick the Tales of Hyderabad outlet you want your biryani from, then browse the menu and order.",
+        content: "Pick the Tales of Hyderabad outlet you want your biryani from, then browse the menu and order.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Tales of Hyderabad — Choose your outlet" },
       {
         name: "twitter:description",
-        content:
-          "Pick the Tales of Hyderabad outlet you want your biryani from, then browse the menu and order.",
+        content: "Pick the Tales of Hyderabad outlet you want your biryani from, then browse the menu and order.",
       },
     ],
   }),
@@ -37,16 +36,36 @@ export const Route = createFileRoute("/")({
 function IndexPage() {
   const store = useStore();
   const navigate = useNavigate();
-  const [pending, setPending] = useState<string | null>(null);
+  const [pincode, setPincode] = useState("");
+  const [lookup, setLookup] = useState<PincodeLookup | null>(null);
+  const [confirmOutletId, setConfirmOutletId] = useState<string | null>(null);
 
   useEffect(() => {
     hydrateStore();
   }, []);
 
+  const cartCount = store.cart.reduce((n, line) => n + line.qty, 0);
+  const currentOutlet = getOutlet(store.outletId);
+  const confirmTarget = confirmOutletId ? getOutlet(confirmOutletId) : null;
+
   const chooseOutlet = (outletId: string) => {
-    setPending(outletId);
-    selectOutlet(outletId);
+    if (outletSwitchDecision(store.outletId, store.cart.length, outletId) === "confirm") {
+      setConfirmOutletId(outletId);
+      return;
+    }
+    applyOutletSwitch(outletId);
     void navigate({ to: "/menu" });
+  };
+
+  const confirmSwitch = () => {
+    if (!confirmOutletId) return;
+    applyOutletSwitch(confirmOutletId);
+    setConfirmOutletId(null);
+    void navigate({ to: "/menu" });
+  };
+
+  const findOutlet = () => {
+    setLookup(lookupPincode(pincode));
   };
 
   const lastOrder = store.orders[0];
@@ -84,7 +103,76 @@ function IndexPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Delivery area — local demo pin code mapping, no geolocation */}
+        <div className="mt-6 rounded-2xl border border-border bg-card p-5">
+          <label
+            htmlFor="pincode"
+            className="text-xs font-bold uppercase tracking-wide text-muted-foreground"
+          >
+            Delivery pincode
+          </label>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Enter your Hyderabad pin code and we'll match you to the nearest demo kitchen.
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              id="pincode"
+              className={cn(
+                "w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-accent sm:max-w-56",
+                lookup?.status === "invalid" && "border-destructive focus:border-destructive",
+              )}
+              value={pincode}
+              onChange={(e) => {
+                setPincode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                setLookup(null);
+              }}
+              placeholder="500084"
+              inputMode="numeric"
+              autoComplete="postal-code"
+            />
+            <button
+              type="button"
+              onClick={findOutlet}
+              className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Find my outlet
+            </button>
+          </div>
+          {lookup?.status === "invalid" && (
+            <p className="mt-2 text-xs font-semibold text-destructive">
+              Enter a valid 6-digit Indian pin code.
+            </p>
+          )}
+          {lookup?.status === "ok" &&
+            lookup.outletId &&
+            (() => {
+              const matched = getOutlet(lookup.outletId);
+              if (!matched) return null;
+              return (
+                <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-veg/10 p-3">
+                  <p className="text-sm font-semibold text-foreground">
+                    <Check className="mr-1 inline size-4 text-veg" aria-hidden />
+                    We deliver to {pincode} from {matched.name}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => chooseOutlet(matched.id)}
+                    className="rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
+                    Order from {matched.name}
+                  </button>
+                </div>
+              );
+            })()}
+          {lookup?.status === "unsupported" && (
+            <p className="mt-3 rounded-xl bg-secondary/70 p-3 text-sm leading-relaxed text-secondary-foreground">
+              We don't deliver to {pincode} yet — this demo covers a few Hyderabad pin codes
+              (try 500084, 500032 or 500072). You can still pick an outlet below.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {listOutlets().map((outlet) => {
             const active = store.outletId === outlet.id;
             return (
@@ -92,9 +180,8 @@ function IndexPage() {
                 key={outlet.id}
                 type="button"
                 onClick={() => chooseOutlet(outlet.id)}
-                disabled={pending !== null}
                 className={cn(
-                  "group flex flex-col rounded-2xl border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md disabled:opacity-60",
+                  "group flex flex-col rounded-2xl border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md",
                   active ? "border-accent ring-1 ring-accent" : "border-border",
                 )}
               >
@@ -150,6 +237,47 @@ function IndexPage() {
           </Link>
         )}
       </section>
+
+      {/* Outlet switch with items in the cart never happens silently */}
+      {confirmTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="switch-outlet-title"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-lg">
+            <div className="flex items-start gap-3">
+              <TriangleAlert className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden />
+              <div>
+                <h3 id="switch-outlet-title" className="font-display text-lg font-semibold">
+                  Switch to {confirmTarget.name}?
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  Your cart has {cartCount} item{cartCount === 1 ? "" : "s"} from{" "}
+                  {currentOutlet?.name ?? "your current outlet"}. Switching kitchens clears the cart.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmOutletId(null)}
+                className="rounded-full border border-border px-4 py-2 text-sm font-semibold transition-colors hover:border-accent"
+              >
+                Keep my cart
+              </button>
+              <button
+                type="button"
+                onClick={confirmSwitch}
+                className="rounded-full bg-destructive px-4 py-2 text-sm font-bold text-destructive-foreground transition-colors hover:bg-destructive/90"
+              >
+                Clear cart & switch
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
