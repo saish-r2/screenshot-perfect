@@ -4,7 +4,13 @@ import { ArrowRight, Check, Clock, MapPin, ReceiptText, Timer, TriangleAlert } f
 import heroImg from "@/assets/hero-spread.jpg";
 import { getOutlet, listOutlets } from "@/data/outlets";
 import { lookupPincode, type PincodeLookup } from "@/lib/pincodes";
-import { applyOutletSwitch, hydrateStore, outletSwitchDecision, useStore } from "@/lib/store";
+import {
+  applyOutletSwitch,
+  confirmOutletSwitch,
+  hydrateStore,
+  outletSwitchDecision,
+  useStore,
+} from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -59,7 +65,7 @@ function IndexPage() {
 
   const confirmSwitch = () => {
     if (!confirmOutletId) return;
-    applyOutletSwitch(confirmOutletId);
+    confirmOutletSwitch(confirmOutletId);
     setConfirmOutletId(null);
     void navigate({ to: "/menu" });
   };
