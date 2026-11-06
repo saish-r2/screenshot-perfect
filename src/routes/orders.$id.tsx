@@ -87,7 +87,7 @@ function OrderPage() {
         <section className="rounded-2xl border border-border bg-card p-5">
           <h2 className="font-display text-lg font-semibold">Order progress</h2>
           <p className="mb-4 mt-1 text-xs text-muted-foreground">
-            Demo timeline — updates automatically
+            Live status — updates as the kitchen moves your order along (try the Kitchen demo mode)
           </p>
           <OrderTracker order={order} />
         </section>
