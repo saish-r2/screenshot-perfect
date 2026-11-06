@@ -87,10 +87,9 @@ function CartPage() {
     );
   }
 
-  const unavailableLines = store.cart.filter((line) => {
-    const item = getItem(line.itemId);
-    return !item || !item.availableAt.includes(outlet.id);
-  });
+  const unavailableLines = store.cart.filter(
+    (line) => !store.menuItems.some((i) => i.id === line.itemId && i.availableAt.includes(outlet.id)),
+  );
   const totals = cartTotals(store.cart);
   const canCheckout = unavailableLines.length === 0;
 
@@ -110,7 +109,7 @@ function CartPage() {
 
       <ul className="mt-6 space-y-4">
         {store.cart.map((line) => {
-          const item = getItem(line.itemId);
+          const item = store.menuItems.find((i) => i.id === line.itemId);
           const unavailable = !item || !item.availableAt.includes(outlet.id);
           return (
             <li

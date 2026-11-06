@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BadgeCheck, CreditCard, Landmark, LoaderCircle, ShieldCheck } from "lucide-react";
 import type { PaymentMethod } from "@/data/types";
-import { getItem } from "@/data/menu";
 import { getOutlet } from "@/data/outlets";
 import { cartTotals, formatINR, lineDescription } from "@/lib/format";
 import { hydrateStore, placeOrder, useStore } from "@/lib/store";
@@ -68,10 +67,9 @@ function CheckoutPage() {
   }
 
   const totals = cartTotals(store.cart);
-  const unavailableCount = store.cart.filter((line) => {
-    const item = getItem(line.itemId);
-    return !item || !item.availableAt.includes(outlet.id);
-  }).length;
+  const unavailableCount = store.cart.filter(
+    (line) => !store.menuItems.some((i) => i.id === line.itemId && i.availableAt.includes(outlet.id)),
+  ).length;
 
   const setField = (key: keyof typeof form) => (value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
