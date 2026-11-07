@@ -69,9 +69,9 @@ function migrateOrder(order: Order): Order {
   idx = Math.min(idx, 3); // the legacy timeline ended at "ready"
   return {
     ...order,
-    status: ORDER_STEPS[idx].id,
+    status: ORDER_STEPS[idx]?.id ?? "placed",
     statusHistory: LEGACY_STEP_OFFSETS_MS.slice(0, idx + 1).map((offset, i) => ({
-      status: ORDER_STEPS[i].id,
+      status: ORDER_STEPS[i]?.id ?? "placed",
       at: placedAt + offset,
     })),
     expectedReadyAt: placedAt + 40 * 60_000,

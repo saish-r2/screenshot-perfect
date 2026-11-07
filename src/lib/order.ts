@@ -31,7 +31,7 @@ export function nextStatus(status: OrderStatus): OrderStatus | null {
   if (status === "delivered") return null;
   const idx = ORDER_STEPS.findIndex((s) => s.id === status);
   if (idx === -1 || idx === ORDER_STEPS.length - 1) return null;
-  return ORDER_STEPS[idx + 1].id;
+  return ORDER_STEPS[idx + 1]?.id ?? null;
 }
 
 /** Label for the kitchen button that advances an order to `next`. */

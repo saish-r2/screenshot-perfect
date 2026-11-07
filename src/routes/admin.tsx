@@ -64,7 +64,7 @@ const EMPTY_FORM: MenuForm = {
 const inputClass =
   "w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-accent";
 
-function FieldError({ message }: { message?: string }) {
+function FieldError({ message }: { message?: string | undefined }) {
   if (!message) return null;
   return <p className="mt-1 text-xs font-semibold text-destructive">{message}</p>;
 }
@@ -72,7 +72,7 @@ function FieldError({ message }: { message?: string }) {
 function AdminPage() {
   const store = useStore();
   const [form, setForm] = useState<MenuForm | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<"name"|"description"|"category"|"price", string>>>({});
   const [banner, setBanner] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -109,7 +109,7 @@ function AdminPage() {
     const name = form.name.trim();
     const description = form.description.trim();
     const price = Number(form.price);
-    const e: Record<string, string> = {};
+    const e: Partial<Record<"name"|"description"|"category"|"price", string>> = {};
     if (name.length < 3) e.name = "Give the item a name (at least 3 characters).";
     if (description.length < 10) e.description = "Add a short description (at least 10 characters).";
     if (!(MENU_CATEGORIES as readonly string[]).includes(form.category)) {
